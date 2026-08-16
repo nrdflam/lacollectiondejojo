@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Collection de Jojo</title>
+<style>
+  :root{
+    --wood:#231920;
+    --wood-2:#332430;
+    --shelf-line:#140d11;
+    --ink:#2b1c1c;
+    --cream:#f6efe4;
+    --cream-dim:rgba(246,239,228,0.55);
+    --coral:#e2795a;
+    --line:rgba(246,239,228,0.10);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(900px 420px at 15% -10%, rgba(226,121,90,0.10), transparent 60%),
+      linear-gradient(180deg,var(--wood),var(--wood-2) 55%, var(--wood));
+    color:var(--cream);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--coral);color:#fff;}
+  .wrap{max-width:1180px;margin:0 auto;padding:30px 18px 120px;}
+
+  header{margin-bottom:20px;}
+  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--coral);font-weight:700;}
+  h1{
+    font-family:Georgia,'Iowan Old Style','Times New Roman',serif;
+    font-weight:600;
+    font-style:italic;
+    font-size:clamp(34px,6vw,58px);
+    margin:4px 0 6px;
+    line-height:1.02;
+  }
+  .sub{color:var(--cream-dim);font-size:14.5px;max-width:520px;line-height:1.5;}
+
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 10px;align-items:center;}
+  input[type=search]{
+    flex:1 1 200px;
+    background:rgba(246,239,228,0.07);
+    border:1px solid var(--line);
+    color:var(--cream);
+    padding:10px 14px;
+    border-radius:20px;
+    font-size:14px;
+  }
+  input[type=search]::placeholder{color:rgba(246,239,228,0.35);}
+
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 4px;}
+  .chip{
+    display:flex;align-items:center;gap:6px;
+    background:rgba(246,239,228,0.06);border:1px solid var(--line);
+    color:var(--cream-dim);padding:7px 13px;border-radius:20px;
+    font-size:12.5px;font-weight:600;cursor:pointer;
+    transition:background .15s, color .15s, transform .15s;
+  }
+  .chip:hover{transform:translateY(-1px);background:rgba(246,239,228,0.11);}
+  .chip.active{background:var(--coral);color:#fff;border-color:transparent;}
+  .chip .dot{width:6px;height:6px;border-radius:50%;flex:0 0 auto;}
+  .dot-complete{background:#8fd4a8;}
+  .dot-missing{background:#e2795a;}
+  .chip.active .dot{background:#fff;}
+
+  .media-toggle{display:flex;gap:8px;margin:18px 0 6px;}
+  .media-toggle button{
+    background:rgba(246,239,228,0.06);border:1px solid var(--line);color:var(--cream-dim);
+    padding:9px 16px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;
+    transition:background .15s, color .15s, transform .15s;
+  }
+  .media-toggle button:hover{transform:translateY(-1px);background:rgba(246,239,228,0.11);}
+  .media-toggle button.active{background:var(--coral);color:#fff;border-color:transparent;}
+
+  .view-toggle{display:flex;background:rgba(0,0,0,0.28);border-radius:20px;padding:3px;border:1px solid var(--line);flex:0 0 auto;}
+  .view-toggle button{background:transparent;border:none;color:var(--cream-dim);padding:8px 14px;border-radius:16px;font-size:12.5px;font-weight:600;cursor:pointer;}
+  .view-toggle button.active{background:var(--coral);color:#fff;}
+
+  .ghost-toggle{
+    width:36px;height:36px;border-radius:50%;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(246,239,228,0.06);border:1px solid var(--line);
+    cursor:pointer;transition:background .15s, border-color .15s, transform .15s;
+  }
+  .ghost-toggle:hover{transform:translateY(-1px);background:rgba(246,239,228,0.11);}
+  .ghost-toggle svg{width:16px;height:16px;stroke:var(--cream-dim);transition:stroke .15s;}
+  .ghost-toggle.active{background:var(--coral);border-color:transparent;}
+  .ghost-toggle.active svg{stroke:#fff;}
+
+  select#sortSelect{
+    background:rgba(246,239,228,0.07);border:1px solid var(--line);color:var(--cream);
+    padding:9px 12px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;flex:0 0 auto;
+  }
+  select#sortSelect option{color:#000;}
+
+  #collectionArea{
+    height:70vh;min-height:340px;display:flex;flex-direction:column;margin-bottom:4px;
+    width:100vw;max-width:100vw;
+    margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
+    box-sizing:border-box;
+  }
+  #shelfContainer{flex:1;min-height:0;display:flex;flex-direction:column;}
+  #shelfContainer .shelf-block{flex:1;min-height:0;display:flex;flex-direction:column;}
+  #shelfContainer .shelf-row{flex:1;min-height:0;}
+
+  #listContainer{flex:1;min-height:0;overflow-y:auto;border-radius:12px;background:rgba(0,0,0,0.14);padding:6px;}
+  .list-row{
+    display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer;
+    transition:background .15s;
+  }
+  .list-row:hover{background:rgba(246,239,228,0.06);}
+  .list-swatch{width:28px;height:38px;border-radius:4px;flex:0 0 auto;box-shadow:inset -3px 0 6px rgba(0,0,0,0.15);}
+  .list-swatch.ghost-sw{background:repeating-linear-gradient(135deg,#e2795a,#e2795a 4px,#c85f42 4px,#c85f42 8px);opacity:.7;}
+  .list-info{flex:1;min-width:0;}
+  .list-title{font-family:Georgia,serif;font-weight:600;font-size:14.5px;}
+  .list-desc{font-size:12px;color:var(--cream-dim);opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .list-tag{font-size:10px;font-weight:700;text-transform:uppercase;padding:3px 8px;border-radius:20px;flex:0 0 auto;}
+
+  .stats{display:flex;gap:24px;flex-wrap:wrap;margin:6px 0 26px;padding:0 4px;}
+  .stat{font-size:12.5px;color:var(--cream-dim);}
+  .stat b{color:var(--cream);font-size:15px;font-weight:700;}
+
+  .shelf-block{margin-bottom:8px;}
+  .shelf-head{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 8px;}
+  .shelf-title{font-family:Georgia,serif;font-size:18px;font-weight:600;}
+  .shelf-badge{font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:3px 10px;border-radius:20px;text-transform:uppercase;}
+  .badge-complete{background:rgba(185,222,201,0.18);color:#bfe6cf;}
+  .badge-missing{background:rgba(226,121,90,0.20);color:#f0a892;}
+
+  .shelf-row{
+    display:flex;align-items:stretch;gap:3px;
+    padding:16px 18px 0;
+    overflow-x:auto;overflow-y:hidden;
+    scrollbar-width:none;
+    cursor:grab;user-select:none;-webkit-user-select:none;
+    transition:transform .05s linear;
+    position:relative;
+  }
+  .shelf-row::-webkit-scrollbar{display:none;}
+  .shelf-row.dragging{cursor:grabbing;}
+  .shelf-row.fits{justify-content:center;}
+  .shelf-ledge{
+    height:10px;
+    background:#1c141a;
+    border-radius:3px;
+    margin-bottom:22px;
+  }
+
+  .slot{flex:0 0 auto;width:40px;position:relative;height:100%;}
+  .shelf-row[data-media="dvd"] .slot{width:50px;}
+  .shelf-row[data-media="vhs"] .slot{width:90px;}
+
+  .spine{
+    position:absolute;left:0;right:0;bottom:-70px;
+    border-radius:5px 5px 0 0;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--spine-color,#ccc);
+    border-left:1.5px solid var(--spine-border,transparent);
+    border-right:1.5px solid var(--spine-border,transparent);
+    border-top:1.5px solid var(--spine-border,transparent);
+    cursor:pointer;
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1);
+  }
+  .slot:hover .spine{transform:translateY(-14px) !important;}
+  .spine.selected{transform:translateY(-20px) !important;}
+  .spine .label{
+    writing-mode:vertical-rl;transform:rotate(180deg);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    font-weight:800;font-size:13px;color:var(--ink);
+    text-transform:uppercase;letter-spacing:.02em;
+    padding:9px 0;max-height:calc(100% - 84px);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+    text-shadow:0 1px 0 rgba(255,255,255,0.4);
+    position:relative;top:-35px;
+  }
+  .spine .dup-dot{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--coral);}
+  .spine .custom-dot{position:absolute;top:6px;right:6px;width:5px;height:5px;border-radius:50%;background:#7fb0e0;}
+  .spine .gift-dot{position:absolute;bottom:78px;left:50%;transform:translateX(-50%);font-size:11px;line-height:1;}
+  .spine.ghost{
+    background:repeating-linear-gradient(135deg, rgba(226,121,90,0.10), rgba(226,121,90,0.10) 6px, rgba(226,121,90,0.18) 6px, rgba(226,121,90,0.18) 12px);
+    border:1.5px dashed rgba(226,121,90,0.5);
+  }
+  .spine.ghost .label{color:#f0a892;opacity:1;}
+  .slot:hover .spine.ghost{transform:translateY(-6px) !important;}
+
+  .family-note{font-size:11.5px;color:var(--cream-dim);padding:8px 4px 0;}
+
+  .detail-panel{
+    position:fixed;left:50%;bottom:18px;transform:translate(-50%,140%);
+    width:min(520px, 92vw);background:var(--cream);color:var(--ink);
+    border-radius:16px;padding:16px 18px;display:flex;gap:14px;align-items:flex-start;
+    box-shadow:0 20px 40px rgba(0,0,0,0.45);
+    transition:transform .38s cubic-bezier(.34,1.4,.4,1);
+    z-index:50;
+  }
+  .detail-panel.open{transform:translate(-50%,0);}
+  .detail-swatch{width:38px;height:58px;border-radius:4px;flex:0 0 auto;box-shadow:inset -4px 0 8px rgba(0,0,0,0.15);}
+  .detail-text{flex:1;min-width:0;}
+  .detail-title{font-family:Georgia,serif;font-weight:700;font-size:16px;margin-bottom:4px;}
+  .detail-desc{font-size:13px;line-height:1.45;opacity:.85;}
+  .detail-chip{display:inline-block;margin-top:8px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:3px 9px;border-radius:20px;}
+  .chip-owned{background:rgba(185,222,201,0.5);color:#2c5c42;}
+  .chip-missing{background:rgba(226,121,90,0.25);color:#a8452f;}
+  .list-tag.tag-owned{background:rgba(185,222,201,0.22);color:#bfe6cf;}
+  .list-tag.tag-missing{background:rgba(226,121,90,0.20);color:#f0a892;}
+  .detail-close{position:absolute;top:8px;right:10px;background:none;border:none;font-size:18px;color:var(--ink);opacity:.4;cursor:pointer;padding:4px;line-height:1;}
+  .detail-close:hover{opacity:.8;}
+
+  footer{margin-top:44px;font-size:11px;color:var(--cream-dim);opacity:.55;max-width:560px;}
+  .empty{opacity:.5;padding:30px 4px;font-size:13px;}
+
+  .fab{
+    position:fixed;right:20px;bottom:20px;z-index:40;
+    width:52px;height:52px;border-radius:50%;
+    background:var(--coral);color:#fff;border:none;
+    font-size:26px;line-height:1;cursor:pointer;
+    box-shadow:0 10px 24px rgba(0,0,0,0.4);
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .15s;
+  }
+  .fab:hover{transform:scale(1.06);}
+
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(15,10,12,0.55);
+    display:none;align-items:center;justify-content:center;z-index:60;padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--cream);color:var(--ink);border-radius:16px;
+    width:min(420px,100%);padding:22px;
+    box-shadow:0 24px 50px rgba(0,0,0,0.5);
+  }
+  .modal h2{font-family:Georgia,serif;font-size:20px;margin:0 0 14px;}
+  .modal label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;opacity:.6;margin:12px 0 5px;}
+  .modal input[type=text], .modal select, .modal textarea{
+    width:100%;padding:9px 12px;border-radius:8px;border:1px solid rgba(58,43,43,0.2);
+    font-size:14px;font-family:inherit;background:#fff;color:var(--ink);
+  }
+  .modal textarea{resize:vertical;min-height:60px;}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+  .btn{padding:9px 16px;border-radius:20px;border:none;font-size:13px;font-weight:700;cursor:pointer;}
+  .btn-primary{background:var(--coral);color:#fff;}
+  .btn-ghost{background:transparent;color:var(--ink);opacity:.55;}
+  .btn-ghost:hover{opacity:.9;}
+  .btn-danger{
+    background:rgba(168,69,47,0.10);color:#a8452f;border:none;cursor:pointer;
+    margin-top:10px;width:30px;height:30px;border-radius:50%;
+    display:none;align-items:center;justify-content:center;
+    transition:background .15s;
+  }
+  .btn-danger:hover{background:rgba(168,69,47,0.2);}
+  .btn-danger svg{width:15px;height:15px;stroke:#a8452f;}
+  .modal-error{color:#a8452f;font-size:12px;margin-top:8px;display:none;}
+
+  .gift-row{display:flex;align-items:center;margin-top:16px;}
+  .switch{position:relative;display:inline-block;cursor:pointer;}
+  .switch input{position:absolute;opacity:0;width:0;height:0;}
+  .switch-track{
+    display:block;width:52px;height:30px;border-radius:20px;
+    background:rgba(58,43,43,0.22);transition:background .18s;position:relative;
+  }
+  .switch-thumb{
+    position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.3);transition:transform .18s;
+    display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;
+  }
+  .switch input:checked + .switch-track{background:var(--coral);}
+  .switch input:checked + .switch-track .switch-thumb{transform:translateX(22px);}
+  #giftFields{margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>La Collection de Jojo</h1>
+  </header>
+
+  <div class="media-toggle" id="mediaToggle">
+    <button data-m="livres" class="active">📚 Livres</button>
+    <button data-m="vhs">📼 VHS</button>
+    <button data-m="dvd">💿 DVD</button>
+  </div>
+
+  <div class="controls">
+    <input type="search" id="search" placeholder="Chercher un titre…">
+    <select id="sortSelect">
+      <option value="original">Ordre d'origine</option>
+      <option value="az">A → Z</option>
+      <option value="za">Z → A</option>
+      <option value="family">Par famille</option>
+      <option value="color">Par couleur</option>
+    </select>
+    <button class="ghost-toggle" id="showMissing" title="Afficher les manquants" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 10h.01M15 10h.01M12 2a7 7 0 0 0-7 7v11l2.5-2 2.5 2 2-2 2 2 2.5-2 2.5 2V9a7 7 0 0 0-7-7z"/>
+      </svg>
+    </button>
+    <div class="view-toggle" id="viewToggle">
+      <button data-v="shelf" class="active">Étagère</button>
+      <button data-v="list">Liste</button>
+    </div>
+  </div>
+
+  <div class="stats" id="statsRow"></div>
+
+  <div id="collectionArea">
+    <div id="shelfContainer"></div>
+    <div id="listContainer" style="display:none;"></div>
+  </div>
+
+  <div class="chips" id="chipsRow"></div>
+  <div class="family-note" id="selectionNote"></div>
+
+  <footer>Étagère reconstituée à partir de deux photos · collection « Mon Histoire du Soir », Hachette Jeunesse.</footer>
+</div>
+
+<button class="fab" id="fabAdd" title="Ajouter un livre">+</button>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Nouveau livre</h2>
+    <label for="fTitle">Titre</label>
+    <input type="text" id="fTitle" placeholder="Ex. Vaiana">
+    <label for="fDesc">Description (facultatif)</label>
+    <textarea id="fDesc" placeholder="Une phrase sur l'histoire…"></textarea>
+
+    <div class="gift-row">
+      <label class="switch" title="C'est un cadeau">
+        <input type="checkbox" id="fIsGift">
+        <span class="switch-track"><span class="switch-thumb">🎁</span></span>
+      </label>
+    </div>
+    <div id="giftFields" style="display:none;">
+      <label for="fGifter">Qui offre ce cadeau ?</label>
+      <input type="text" id="fGifter" placeholder="Ex. Tonton Marc">
+    </div>
+
+    <div class="modal-error" id="modalError">Donne au moins un titre.</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">Annuler</button>
+      <button class="btn btn-primary" id="modalSave">Ajouter à l'étagère</button>
+    </div>
+  </div>
+</div>
+
+<div class="detail-panel" id="detailPanel">
+  <button class="detail-close" onclick="closeDetail()">×</button>
+  <div class="detail-swatch" id="detailSwatch"></div>
+  <div class="detail-text">
+    <div class="detail-title" id="detailTitle"></div>
+    <div class="detail-desc" id="detailDesc"></div>
+    <div class="detail-chip" id="detailChip"></div>
+    <button class="btn-danger" id="detailDelete" title="Retirer de l'étagère">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16z"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://tpsrcomcwbvsbbmouyey.supabase.co';
+const SUPABASE_KEY='sb_publishable_DqlcF34jz2NcbEiPyR6ElA_TOQz4AY7';
+const sb = (typeof supabase!=='undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+</script>
+<script>
+const books = [
+{t:"Le Roi Lion II : L'honneur de la tribu", fam:"roilion", seq:2, d:"Kiara et Kovu, deux clans rivaux, un amour qui pourrait réunifier la Terre des Lions."},
+{t:"Rebelle", fam:null, d:"Merida, princesse écossaise à l'arc redoutable, brise les traditions et affronte un sort qui transforme sa mère."},
+{t:"Le Monde de Dory", fam:"nemo", seq:2, d:"Dory part à la recherche de ses parents, aidée par Marin et Nemo."},
+{t:"La Belle et le Clochard 2 : L'appel de la rue", fam:"clochard", seq:2, d:"Scamp, le fils de Lady et Clochard, rêve de liberté et rejoint une bande de chiens errants."},
+{t:"Ratatouille", fam:null, d:"Rémy, un rat parisien au palais fin, rêve de devenir grand chef cuisinier."},
+{t:"Vice-versa", fam:"viceversa", seq:1, d:"Dans la tête de Riley, Joie, Tristesse, Peur, Colère et Dégoût gèrent ses émotions au quotidien."},
+{t:"Le Bossu de Notre-Dame", fam:null, d:"Quasimodo, enfermé dans le clocher de Notre-Dame, rêve de découvrir le monde extérieur."},
+{t:"Les Aristochats", fam:null, d:"Duchesse et ses chatons, héritiers d'une fortune, doivent rentrer chez eux avec l'aide du chat Thomas O'Malley."},
+{t:"Merlin l'Enchanteur", fam:null, dup:true, d:"Le jeune Arthur est formé par le magicien Merlin, qui le transforme en poisson, écureuil et oiseau pour lui enseigner la vie."},
+{t:"Merlin l'Enchanteur", fam:null, dup:true, d:"Le jeune Arthur est formé par le magicien Merlin, qui le transforme en poisson, écureuil et oiseau pour lui enseigner la vie."},
+{t:"Le Livre de la Jungle", fam:"junglebook", seq:1, d:"Mowgli, enfant élevé par les loups, doit fuir le tigre Shere Khan avec l'aide de Baloo et Bagheera."},
+{t:"Winnie l'Ourson et l'arbre à miel", fam:"winnie", d:"Winnie part en quête de miel et se retrouve coincé dans le terrier de Coco Lapin."},
+{t:"Cars 2", fam:"cars", seq:2, d:"Flash McQueen et Martin s'embarquent dans une course d'espionnage internationale."},
+{t:"Là-haut", fam:null, d:"Carl, veuf et grognon, envole sa maison avec des milliers de ballons pour réaliser le rêve de sa femme."},
+{t:"Donald et le Fantôme", fam:null, d:"Donald doit passer une nuit dans un manoir hanté pour hériter d'une fortune."},
+{t:"Pocahontas, Une Légende Indienne", fam:null, d:"Pocahontas, fille du chef Powhatan, tisse un lien avec le colon John Smith malgré les tensions entre leurs peuples."},
+{t:"Wall-E", fam:null, d:"Un robot solitaire nettoie une Terre désertée et tombe amoureux de la sonde Eve."},
+{t:"Tarzan", fam:null, d:"Élevé par des gorilles dans la jungle, Tarzan découvre l'humanité en rencontrant Jane."},
+{t:"Hercule", fam:null, d:"Fils de Zeus banni sur Terre, Hercule doit redevenir un dieu en prouvant sa valeur de héros."},
+{t:"Winnie l'Ourson et l'Éfélant", fam:"winnie", d:"Winnie et ses amis partent à la chasse à l'Éfélant, une créature mystérieuse qui vole le miel."},
+{t:"Bernard et Bianca", fam:"bernardbianca", seq:1, d:"Deux souris agents secrets de la Société de Sauvetage partent délivrer une petite fille kidnappée."},
+{t:"Bernard et Bianca au pays des kangourous", fam:"bernardbianca", seq:2, d:"Bernard et Bianca s'envolent en Australie pour sauver un aigle royal et son jeune protégé."},
+{t:"Les Trois Petits Cochons", fam:null, d:"Trois cochons construisent chacun leur maison face à la menace du grand méchant loup."},
+{t:"Les aventures de Tigrou et de son ami Winnie", fam:"winnie", d:"Tigrou, se sentant seul, part à la recherche d'autres Tigrous dans la Forêt des Rêves Bleus."},
+{t:"Volt", fam:null, d:"Un chien vedette de série télé, persuadé d'avoir de vrais super-pouvoirs, traverse le pays pour retrouver sa maîtresse."},
+{t:"Aventures à Disneyland", fam:null, d:"Un conte souvenir qui suit des personnages Disney à travers les attractions du parc."},
+{t:"Le Prince et le Pauvre", fam:null, d:"Mickey incarne à la fois un prince et un pauvre qui échangent leurs vies le temps d'une journée."},
+{t:"Les Indestructibles", fam:"indestructibles", seq:1, d:"Une famille de super-héros retirés de la vie active reprend du service face à une nouvelle menace."},
+{t:"Monstres Academy", fam:"monstres", seq:1, d:"Bob et Sulli, étudiants rivaux à l'université de la Peur, apprennent à devenir de vrais monstres effrayants."},
+{t:"Mickey et le haricot magique", fam:null, d:"Mickey, Donald et Dingo échangent leur vache contre des haricots magiques qui font pousser un géant."},
+{t:"Blanche-Neige et les 7 nains", fam:null, d:"Blanche-Neige, chassée par sa belle-mère jalouse, trouve refuge auprès de sept nains dans la forêt."},
+{t:"Toy Story 2", fam:"toystory", seq:2, d:"Woody est volé par un collectionneur de jouets et ses amis partent le sauver."},
+{t:"Peter Pan et le Capitaine Crochet", fam:null, d:"Peter Pan emmène Wendy et ses frères au Pays Imaginaire, où rôde le redoutable Capitaine Crochet."},
+{t:"Un cadeau pour Porcinet", fam:"porcinet", d:"Winnie et ses amis préparent une surprise pour rassurer le petit Porcinet, toujours anxieux."},
+{t:"Raiponce", fam:null, d:"Enfermée dans une tour par une sorcière, Raiponce s'évade grâce à ses cheveux magiques et un brigand repenti."},
+{t:"Le Roi Lion", fam:"roilion", seq:1, d:"Simba, jeune lionceau héritier du trône, doit fuir puis revenir affronter son oncle Scar."},
+{t:"La Planète au Trésor", fam:null, d:"Jim Hawkins embarque pour un voyage spatial à la recherche d'un trésor légendaire."},
+{t:"Minnie et le Moulin Magique", fam:null, d:"Minnie affronte les caprices d'un moulin ensorcelé dans une aventure pleine de rebondissements."},
+{t:"Kuzco, l'empereur mégalo", fam:null, d:"L'empereur Kuzco, transformé en lama par sa conseillère félonne, doit retrouver son trône avec l'aide de Pacha."},
+{t:"Basil détective privé", fam:null, d:"Basil, souris détective inspirée de Sherlock Holmes, enquête sur l'enlèvement d'un jouet horloger."},
+{t:"Dinosaure", fam:null, dup:true, d:"Aladar, iguanodon élevé par des lémuriens, guide un groupe de survivants après la chute d'une météorite."},
+{t:"Dinosaure", fam:null, dup:true, d:"Aladar, iguanodon élevé par des lémuriens, guide un groupe de survivants après la chute d'une météorite."},
+{t:"Riki, Fifi, Loulou et la Boîte Mystérieuse", fam:null, d:"Les trois neveux de Donald découvrent une mystérieuse boîte aux pouvoirs inattendus."},
+{t:"Zootopie", fam:"zootopie", seq:1, d:"Judy Hopps, première lapine policière, enquête sur une disparition dans une métropole peuplée d'animaux."},
+{t:"Toy Story 3", fam:"toystory", seq:3, d:"Les jouets d'Andy, devenu grand, se retrouvent envoyés à la crèche Sunnyside."},
+{t:"Pinocchio", fam:null, d:"Un pantin de bois rêve de devenir un vrai petit garçon, guidé par sa conscience Jiminy Cricket."},
+{t:"Les 101 Dalmatiens", fam:"dalmatiens", seq:1, d:"Pongo et Perdita partent sauver leurs chiots kidnappés par la cruelle Cruella d'Enfer."},
+{t:"Atlantide, l'empire perdu", fam:null, d:"Milo Thatch mène une expédition pour retrouver la cité engloutie d'Atlantide."},
+{t:"Le Voyage d'Arlo", fam:null, d:"Arlo, jeune dinosaure craintif, se lie d'amitié avec un enfant humain sauvage après avoir été séparé de sa famille."},
+{t:"Rox et Rouky", fam:null, d:"Un renardeau et un chiot, meilleurs amis d'enfance, doivent affronter leur destin de prédateur et de chasseur."},
+{t:"Alice au Pays des merveilles", fam:null, d:"Alice tombe dans un terrier et découvre un monde absurde peuplé de personnages extravagants."},
+{t:"Le Livre de la Jungle 2", fam:"junglebook", seq:2, d:"Mowgli, retourné au village, est tenté de replonger dans la jungle par son ami Baloo."},
+{t:"Le Roi Lion 3", fam:"roilion", seq:3, d:"Timon et Pumbaa racontent leur version de l'histoire du Roi Lion, pleine d'humour."},
+{t:"Le Monde de Nemo", fam:"nemo", seq:1, d:"Marin, poisson-clown surprotecteur, traverse l'océan pour retrouver son fils Nemo."},
+{t:"Chicken Little", fam:null, d:"Une petite poule persuadée que le ciel lui tombe sur la tête doit sauver sa ville d'une invasion extraterrestre."},
+{t:"Oliver et Compagnie", fam:null, d:"Oliver, chaton abandonné à New York, est recueilli par une bande de chiens vivant de larcins."},
+{t:"La Petite Sirène", fam:null, d:"Ariel, sirène rêvant du monde des humains, échange sa voix contre des jambes auprès de la sorcière Ursula."},
+{t:"La Princesse et la Grenouille", fam:null, d:"Tiana, jeune femme ambitieuse, est transformée en grenouille en embrassant un prince ensorcelé."},
+{t:"Mulan", fam:"mulan", seq:1, d:"Mulan se fait passer pour un homme afin de rejoindre l'armée impériale à la place de son père."},
+{t:"Le Livre de la Jungle : Souvenirs d'enfance", fam:null, d:"Un recueil de souvenirs et d'histoires courtes autour de Mowgli et ses amis de la jungle."},
+{t:"Lilo & Stitch", fam:"lilostitch", seq:1, d:"Lilo, petite fille hawaïenne solitaire, adopte Stitch, une créature extraterrestre en fuite."},
+{t:"Les Aventures de Porcinet", fam:"porcinet", d:"Porcinet vit de nouvelles péripéties dans la Forêt des Rêves Bleus avec Winnie et ses amis."},
+{t:"La Belle et la Bête", fam:null, d:"Belle, prisonnière volontaire d'un château ensorcelé, apprend à voir au-delà de l'apparence de la Bête."},
+{t:"La Belle et le Clochard", fam:"clochard", seq:1, d:"Lady, chienne de bonne famille, tombe amoureuse de Clochard, chien des rues sans attaches."},
+{t:"Bambi", fam:null, d:"Un faon grandit dans la forêt, découvre l'amitié et affronte la perte de sa mère."},
+{t:"Le Retour de Jafar", fam:"aladdin", seq:2, d:"Jafar, échappé de sa lampe, revient se venger d'Aladdin et du Sultan."},
+{t:"La Belle au Bois Dormant", fam:null, d:"La princesse Aurore, maudite à la naissance, doit être réveillée par un baiser d'amour véritable."},
+{t:"Cars", fam:"cars", seq:1, d:"Flash McQueen, voiture de course arrogante, apprend l'humilité dans la petite ville de Radiator Springs."},
+{t:"Aladdin", fam:"aladdin", seq:1, d:"Aladdin, voleur des rues, utilise les pouvoirs d'un génie pour conquérir le cœur de la princesse Jasmine."},
+{t:"Monstres et Compagnie", fam:"monstres", seq:2, d:"Sulli et Bob, monstres effrayeurs, découvrent que les enfants ne sont pas si dangereux que ça."},
+{t:"Winnie l'Ourson", fam:"winnie", d:"Un recueil d'histoires classiques de Winnie et ses amis dans la Forêt des Rêves Bleus."},
+{t:"1001 Pattes", fam:null, d:"Flik, fourmi inventive, recrute une troupe de bestioles de cirque pour libérer sa colonie des sauterelles."},
+{t:"Cendrillon", fam:null, d:"Cendrillon, maltraitée par sa belle-famille, obtient l'aide de sa marraine la fée pour aller au bal royal."},
+{t:"Les 102 Dalmatiens", fam:"dalmatiens", seq:2, d:"Cruella d'Enfer, tout juste sortie de prison, recommence à comploter contre les dalmatiens."},
+{t:"La Ferme se rebelle", fam:null, d:"Les animaux d'une ferme se rebellent quand ils apprennent qu'ils vont être vendus."},
+{t:"La Reine des Neiges", fam:"reineneiges", seq:1, d:"Anna part à la recherche de sa sœur Elsa, dont les pouvoirs de glace ont plongé le royaume dans un hiver éternel."},
+{t:"Bienvenue chez les Robinson", fam:null, d:"Lewis, jeune inventeur orphelin, voyage dans le futur au sein d'une famille aussi excentrique qu'attachante."},
+];
+
+const familyMeta = {
+  toystory:   {label:"Toy Story",              missing:[{t:"Toy Story",seq:1},{t:"Toy Story 4",seq:4}]},
+  cars:       {label:"Cars",                   missing:[{t:"Cars 3",seq:3}]},
+  aladdin:    {label:"Aladdin",                missing:[{t:"Aladdin et le Roi des voleurs",seq:3}]},
+  reineneiges:{label:"La Reine des Neiges",    missing:[{t:"La Reine des Neiges 2",seq:2}]},
+  lilostitch: {label:"Lilo & Stitch",          missing:[{t:"Stitch a un défaut",seq:2}]},
+  mulan:      {label:"Mulan",                  missing:[{t:"Mulan II",seq:2}]},
+  roilion:    {label:"Le Roi Lion",            missing:[]},
+  dalmatiens: {label:"101 / 102 Dalmatiens",   missing:[]},
+  monstres:   {label:"Monstres & Cie",         missing:[]},
+  junglebook: {label:"Le Livre de la Jungle",  missing:[]},
+  clochard:   {label:"La Belle et le Clochard",missing:[]},
+  bernardbianca:{label:"Bernard et Bianca",    missing:[]},
+  nemo:       {label:"Le Monde de Nemo",       missing:[]},
+  indestructibles:{label:"Les Indestructibles",missing:[{t:"Les Indestructibles 2",seq:2}]},
+  viceversa:  {label:"Vice-versa",             missing:[{t:"Vice-versa 2",seq:2}]},
+  zootopie:   {label:"Zootopie",               missing:[{t:"Zootopie 2",seq:2}]},
+  vaiana:     {label:"Vaiana",                 missing:[{t:"Vaiana",seq:1},{t:"Vaiana 2",seq:2}]},
+  coco:       {label:"Coco",                   missing:[{t:"Coco",seq:1}]},
+  robindesbois:{label:"Robin des Bois",        missing:[{t:"Robin des Bois",seq:1}]},
+  dumbo:      {label:"Dumbo",                  missing:[{t:"Dumbo",seq:1}]},
+  frereours:  {label:"Frère des Ours",         missing:[{t:"Frère des Ours",seq:1}]},
+  taram:      {label:"Taram et le Chaudron Magique", missing:[{t:"Taram et le Chaudron Magique",seq:1}]},
+  encanto:    {label:"Encanto",                missing:[{t:"Encanto",seq:1}]},
+  winnie:     {label:"Winnie l'Ourson",        missing:[], noGap:true},
+  porcinet:   {label:"Porcinet",               missing:[], noGap:true},
+};
+
+const palette = ['#F3C6CE','#B9DEC9','#F6E2A6','#AECBE3','#D8C2E8','#F0B79A','#BFE3DA','#E9C7E0','#D9DDA0'];
+function hashHue(str){let h=0;for(let i=0;i<str.length;i++){h=str.charCodeAt(i)+((h<<5)-h);}return Math.abs(h);}
+function spineColor(title){return palette[hashHue(title)%palette.length];}
+function hexHue(hex){
+  hex=hex.replace('#','');
+  const r=parseInt(hex.substr(0,2),16)/255, g=parseInt(hex.substr(2,2),16)/255, b=parseInt(hex.substr(4,2),16)/255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b);
+  let h=0;
+  if(max!==min){
+    const d=max-min;
+    if(max===r) h=((g-b)/d+(g<b?6:0));
+    else if(max===g) h=((b-r)/d+2);
+    else h=((r-g)/d+4);
+    h*=60;
+  }
+  return h;
+}
+function darken(hex, amt){
+  hex=hex.replace('#','');
+  const r=parseInt(hex.substr(0,2),16), g=parseInt(hex.substr(2,2),16), b=parseInt(hex.substr(4,2),16);
+  const dr=Math.max(0,Math.round(r*(1-amt))), dg=Math.max(0,Math.round(g*(1-amt))), db=Math.max(0,Math.round(b*(1-amt)));
+  return 'rgb('+dr+','+dg+','+db+')';
+}
+function spineTilt(title){return ((hashHue(title+'t')%50)-25)/10;}
+function spineHeight(title){return 78 + (hashHue(title+'h')%22);} // % of shelf-row height
+
+function applySort(items){
+  const list=items.slice();
+  if(currentSort==='az'){
+    list.sort((a,b)=>a.t.localeCompare(b.t,'fr'));
+  } else if(currentSort==='za'){
+    list.sort((a,b)=>b.t.localeCompare(a.t,'fr'));
+  } else if(currentSort==='family'){
+    list.sort((a,b)=>{
+      const la=a.fam?(familyMeta[a.fam]?familyMeta[a.fam].label:a.fam):'\uFFFFIndépendants';
+      const lb=b.fam?(familyMeta[b.fam]?familyMeta[b.fam].label:b.fam):'\uFFFFIndépendants';
+      if(la!==lb) return la.localeCompare(lb,'fr');
+      return (a.seq||0)-(b.seq||0);
+    });
+  } else if(currentSort==='color'){
+    list.sort((a,b)=>{
+      const ca=spineColor(a.t+(a.dup&&a._id%2?'-dup':''));
+      const cb=spineColor(b.t+(b.dup&&b._id%2?'-dup':''));
+      return hexHue(ca)-hexHue(cb);
+    });
+  }
+  return list;
+}
+
+let currentSearch='';
+let currentSort='original';
+let selectedFamily=null; // null = collection complète
+let showMissing=false;
+let mediaType='livres'; // 'livres' | 'vhs' | 'dvd'
+const mediaLabels={livres:'livre', vhs:'VHS', dvd:'DVD'};
+let customBooksByMedia={livres:[], vhs:[], dvd:[]}; // ajouts utilisateur, persistés via window.storage, par média
+
+function allBooks(){
+  if(mediaType==='livres') return books.concat(customBooksByMedia.livres);
+  return customBooksByMedia[mediaType];
+}
+
+function allMissingGhosts(q){
+  const out=[];
+  Object.keys(familyMeta).forEach(key=>{
+    const meta=familyMeta[key];
+    if(meta.noGap) return;
+    meta.missing.forEach(m=>{
+      if(!q || m.t.toLowerCase().includes(q)) out.push({t:m.t, seq:m.seq, fam:key, familyLabel:meta.label, isGhost:true});
+    });
+  });
+  return out;
+}
+
+function render(){
+  const q=currentSearch.trim().toLowerCase();
+  const withIds=allBooks().map((b,i)=>Object.assign({}, b, {_id:i}));
+  const shelfContainer=document.getElementById('shelfContainer');
+  shelfContainer.innerHTML='';
+
+  const block=document.createElement('div');
+  block.className='shelf-block';
+
+  const familyModeActive = mediaType==='livres';
+
+  let items, meta=null, isComplete=true, ghosts=[];
+  if(selectedFamily && familyModeActive){
+    meta=familyMeta[selectedFamily]||{label:selectedFamily, missing:[]};
+    items=withIds.filter(b=>b.fam===selectedFamily && b.t.toLowerCase().includes(q));
+    isComplete=meta.noGap || meta.missing.length===0;
+    if(showMissing && !meta.noGap){
+      ghosts=meta.missing.filter(m=>!q||m.t.toLowerCase().includes(q)).map(m=>({t:m.t, seq:m.seq, fam:selectedFamily, familyLabel:meta.label, isGhost:true}));
+    }
+    block.innerHTML=
+      '<div class="shelf-head">'+
+        '<div class="shelf-title">'+meta.label+'</div>'+
+        '<div class="shelf-badge '+(isComplete?'badge-complete':'badge-missing')+'">'+
+          (isComplete?'Complet':(meta.missing.length+' manquant'+(meta.missing.length>1?'s':'')))+
+        '</div>'+
+      '</div>';
+  } else if(selectedFamily){
+    // vhs/dvd : simple filtre par famille, pas de notion de manquant
+    const label=(familyMeta[selectedFamily]?familyMeta[selectedFamily].label:selectedFamily);
+    items=withIds.filter(b=>b.fam===selectedFamily && b.t.toLowerCase().includes(q));
+    block.innerHTML=
+      '<div class="shelf-head"><div class="shelf-title">'+label+'</div><div class="shelf-badge badge-complete">'+items.length+'</div></div>';
+  } else {
+    items=withIds.filter(b=>b.t.toLowerCase().includes(q));
+    if(showMissing && familyModeActive){ ghosts=allMissingGhosts(q); }
+    block.innerHTML='';
+  }
+
+  // fusion possédés + manquants avant tri, pour un vrai entrelacement
+  let combined=items.concat(ghosts);
+  if(currentSort==='original'){
+    if(selectedFamily && familyModeActive){
+      combined.sort((a,b)=>(a.seq||0)-(b.seq||0));
+    } else if(ghosts.length){
+      const sortedGhosts=ghosts.slice().sort((a,b)=>{
+        if(a.familyLabel!==b.familyLabel) return a.familyLabel.localeCompare(b.familyLabel,'fr');
+        return (a.seq||0)-(b.seq||0);
+      });
+      combined=items.concat(sortedGhosts);
+    }
+  } else {
+    combined=applySort(combined);
+  }
+
+  const row=document.createElement('div');
+  row.className='shelf-row';
+  row.dataset.media=mediaType;
+  combined.forEach(b=>row.appendChild(spineEl(b)));
+  block.appendChild(row);
+  const ledge=document.createElement('div'); ledge.className='shelf-ledge'; block.appendChild(ledge);
+  shelfContainer.appendChild(block);
+  attachDrag(row);
+  requestAnimationFrame(function(){
+    row.classList.toggle('fits', row.scrollWidth<=row.clientWidth+1);
+  });
+
+  const emptyMsg = mediaType==='livres'
+    ? 'Aucun résultat.'
+    : 'Aucun '+mediaLabels[mediaType]+' pour l\u2019instant — ajoute-en avec le bouton +.';
+  if(combined.length===0){
+    row.outerHTML='<div class="empty">'+emptyMsg+'</div>';
+  }
+
+  // ---- vue liste ----
+  const listContainer=document.getElementById('listContainer');
+  listContainer.innerHTML='';
+  if(combined.length===0){
+    listContainer.innerHTML='<div class="empty">'+emptyMsg+'</div>';
+  } else {
+    combined.forEach(b=>listContainer.appendChild(listRowEl(b)));
+  }
+
+  const note=document.getElementById('selectionNote');
+  note.textContent = (meta && !isComplete) ? ('Il manque : '+meta.missing.map(m=>m.t).join(', ')+'.') : '';
+
+  const total=allBooks().length, uniqueTitles=new Set(allBooks().map(b=>b.t)).size;
+  if(familyModeActive){
+    const gapFams=Object.keys(familyMeta).filter(k=>!familyMeta[k].noGap);
+    const incompleteCount=gapFams.filter(k=>familyMeta[k].missing.length>0).length;
+    document.getElementById('statsRow').innerHTML=
+      '<div class="stat"><b>'+total+'</b> livres</div>'+
+      '<div class="stat"><b>'+uniqueTitles+'</b> titres uniques</div>'+
+      '<div class="stat"><b>'+gapFams.length+'</b> franchises</div>'+
+      '<div class="stat"><b>'+incompleteCount+'</b> incomplètes</div>';
+  } else {
+    const famCount=new Set(withIds.filter(b=>b.fam).map(b=>b.fam)).size;
+    document.getElementById('statsRow').innerHTML=
+      '<div class="stat"><b>'+total+'</b> '+mediaLabels[mediaType]+(total>1?'s':'')+'</div>'+
+      '<div class="stat"><b>'+uniqueTitles+'</b> titres uniques</div>'+
+      '<div class="stat"><b>'+famCount+'</b> franchises</div>';
+  }
+
+  document.getElementById('showMissing').style.display = familyModeActive ? 'flex' : 'none';
+
+  renderChips();
+}
+
+function renderChips(){
+  const chipsRow=document.getElementById('chipsRow');
+  chipsRow.innerHTML='';
+  const all=document.createElement('div');
+  all.className='chip'+(selectedFamily===null?' active':'');
+  all.textContent='Toute la collection';
+  all.addEventListener('click',function(){selectedFamily=null; render();});
+  chipsRow.appendChild(all);
+
+  if(mediaType==='livres'){
+    Object.keys(familyMeta).sort((a,b)=>familyMeta[a].label.localeCompare(familyMeta[b].label)).forEach(key=>{
+      const meta=familyMeta[key];
+      const isComplete=meta.noGap || meta.missing.length===0;
+      const chip=document.createElement('div');
+      chip.className='chip'+(selectedFamily===key?' active':'');
+      chip.innerHTML='<span class="dot '+(isComplete?'dot-complete':'dot-missing')+'"></span>'+meta.label;
+      chip.addEventListener('click',function(){selectedFamily=(selectedFamily===key?null:key); render();});
+      chipsRow.appendChild(chip);
+    });
+  } else {
+    const famKeys=Array.from(new Set(allBooks().filter(b=>b.fam).map(b=>b.fam)))
+      .sort((a,b)=>(familyMeta[a]?familyMeta[a].label:a).localeCompare(familyMeta[b]?familyMeta[b].label:b,'fr'));
+    famKeys.forEach(key=>{
+      const label=familyMeta[key]?familyMeta[key].label:key;
+      const chip=document.createElement('div');
+      chip.className='chip'+(selectedFamily===key?' active':'');
+      chip.textContent=label;
+      chip.addEventListener('click',function(){selectedFamily=(selectedFamily===key?null:key); render();});
+      chipsRow.appendChild(chip);
+    });
+  }
+}
+
+function spineEl(b){
+  const slot=document.createElement('div');
+  slot.className='slot';
+  const el=document.createElement('div');
+  const isGhost=!!b.isGhost;
+  el.className='spine'+(isGhost?' ghost':'');
+  if(!isGhost){
+    const color=spineColor(b.t+(b.dup&&b._id%2?'-dup':''));
+    el.style.setProperty('--spine-color', color);
+    el.style.setProperty('--spine-border', darken(color, 0.10));
+  }
+  el.style.height='calc('+spineHeight(b.t)+'% + 70px)';
+  const tilt=spineTilt(b.t);
+  el.style.transform='rotate('+tilt+'deg)';
+  el.innerHTML='<div class="label">'+b.t+'</div>'+(b.dup?'<div class="dup-dot"></div>':'')+(b.custom?'<div class="custom-dot"></div>':'')+(b.gifter?'<div class="gift-dot">🎁</div>':'');
+  el.addEventListener('click',function(){
+    if(isGhost){
+      openDetail({title:b.t, desc:"Ce volume de la franchise « "+(b.familyLabel||'')+" » existe mais ne fait pas partie de la collection sur l'étagère.", missing:true});
+    } else {
+      selectBook(b,el,spineColor(b.t+(b.dup&&b._id%2?'-dup':'')));
+    }
+  });
+  slot.appendChild(el);
+  return slot;
+}
+
+function listRowEl(b){
+  const el=document.createElement('div');
+  el.className='list-row';
+  const isGhost=!!b.isGhost;
+  const color=spineColor(b.t+(b.dup&&b._id%2?'-dup':''));
+  el.innerHTML=
+    '<div class="list-swatch'+(isGhost?' ghost-sw':'')+'"'+(isGhost?'':' style="background:'+color+'"')+'></div>'+
+    '<div class="list-info"><div class="list-title">'+b.t+'</div><div class="list-desc">'+(isGhost?(b.familyLabel?b.familyLabel+' — ':'')+'Absent de l\u2019étagère':(b.d||''))+'</div></div>'+
+    '<div class="list-tag '+(isGhost?'tag-missing':'tag-owned')+'">'+(isGhost?'Manquant':'Possédé')+'</div>';
+  el.addEventListener('click',function(){
+    if(isGhost){
+      openDetail({title:b.t, desc:"Ce volume de la franchise « "+(b.familyLabel||'')+" » existe mais ne fait pas partie de la collection sur l'étagère.", missing:true});
+    } else {
+      openDetail({title:b.t, desc:b.d, color:color, missing:false, custom:!!b.custom, customId:b.customId});
+    }
+  });
+  return el;
+}
+
+function selectBook(b, el, color){
+  document.querySelectorAll('.spine.selected').forEach(function(s){s.classList.remove('selected');});
+  el.classList.add('selected');
+  openDetail({title:b.t, desc:b.d, color:color, missing:false, custom:!!b.custom, customId:b.customId, gifter:b.gifter});
+}
+
+function openDetail(opts){
+  document.getElementById('detailTitle').textContent=opts.title;
+  let desc=opts.desc || 'Pas de description.';
+  if(opts.gifter){ desc += ' 🎁 Offert par '+opts.gifter+'.'; }
+  document.getElementById('detailDesc').textContent=desc;
+  const chip=document.getElementById('detailChip');
+  chip.textContent= opts.missing? 'Manquant' : 'Sur l\u2019étagère';
+  chip.className='detail-chip '+(opts.missing?'chip-missing':'chip-owned');
+  const sw=document.getElementById('detailSwatch');
+  sw.style.background= opts.missing? 'repeating-linear-gradient(135deg,#e2795a,#e2795a 4px,#c85f42 4px,#c85f42 8px)' : (opts.color||'#ccc');
+  const del=document.getElementById('detailDelete');
+  if(opts.custom){
+    del.style.display='flex';
+    del.onclick=function(){
+      if(confirm('Retirer « '+opts.title+' » de l\u2019étagère ?')){
+        deleteCustomBook(opts.customId);
+        closeDetail();
+      }
+    };
+  } else {
+    del.style.display='none';
+    del.onclick=null;
+  }
+  document.getElementById('detailPanel').classList.add('open');
+}
+function closeDetail(){
+  document.getElementById('detailPanel').classList.remove('open');
+  document.querySelectorAll('.spine.selected').forEach(function(s){s.classList.remove('selected');});
+}
+
+// ---------- ajout / suppression de livres (persisté via window.storage, avec repli local si le fichier est ouvert hors de Claude) ----------
+const storageAdapter = {
+  async get(key){
+    try{
+      if(window.storage) return await window.storage.get(key, false);
+    }catch(e){}
+    try{
+      const v = localStorage.getItem(key);
+      return v ? {value:v} : null;
+    }catch(e){ return null; }
+  },
+  async set(key, value){
+    try{
+      if(window.storage){ await window.storage.set(key, value, false); return; }
+    }catch(e){}
+    try{ localStorage.setItem(key, value); }catch(e){}
+  }
+};
+const mediaStorageKeys={livres:'custom-books', vhs:'custom-books-vhs', dvd:'custom-books-dvd'};
+
+// ---------- Supabase : lecture/écriture partagée + repli local si indisponible ----------
+async function loadAllCustomBooks(){
+  customBooksByMedia={livres:[], vhs:[], dvd:[]};
+  if(sb){
+    try{
+      const { data, error } = await sb.from('items').select('*').order('created_at', {ascending:true});
+      if(error) throw error;
+      data.forEach(function(row){
+        const book={t:row.title, fam:row.fam||null, d:row.description||'', custom:true, customId:row.id};
+        if(row.gifter){ book.gifter=row.gifter; }
+        if(customBooksByMedia[row.media_type]) customBooksByMedia[row.media_type].push(book);
+      });
+      return;
+    }catch(e){
+      console.error('Supabase indisponible, repli local', e);
+    }
+  }
+  const keys=Object.keys(mediaStorageKeys);
+  await Promise.all(keys.map(async function(m){
+    try{
+      const res = await storageAdapter.get(mediaStorageKeys[m]);
+      customBooksByMedia[m] = res && res.value ? JSON.parse(res.value) : [];
+    }catch(e){
+      customBooksByMedia[m] = [];
+    }
+  }));
+}
+async function saveCustomBooksLocal(){
+  try{
+    await storageAdapter.set(mediaStorageKeys[mediaType], JSON.stringify(customBooksByMedia[mediaType]));
+  }catch(e){
+    console.error('Sauvegarde locale impossible', e);
+  }
+}
+function notifyGift(title, gifter){
+  const mediaLabel=mediaLabels[mediaType]||'objet';
+  const subject='Nouveau cadeau ajouté à la collection de Jojo';
+  const body=
+    gifter+' vient d\u2019ajouter « '+title+' » ('+mediaLabel+') à la collection de Jojo, en cadeau.\n\n'+
+    'Ce message a été pré-rempli automatiquement par l\u2019app — il suffit de l\u2019envoyer.';
+  const mailto='mailto:florian.amoneau@gmail.com,manonhie@gmail.com'
+    +'?subject='+encodeURIComponent(subject)
+    +'&body='+encodeURIComponent(body);
+  window.open(mailto, '_blank');
+}
+
+async function addCustomBook(title, fam, desc, gifter){
+  selectedFamily = fam || null;
+  if(sb){
+    try{
+      const insertObj={media_type:mediaType, title:title, fam:fam||null, description:desc||null, gifter:gifter||null};
+      const { data, error } = await sb.from('items').insert(insertObj).select().single();
+      if(error) throw error;
+      const book={t:data.title, fam:data.fam||null, d:data.description||'', custom:true, customId:data.id};
+      if(data.gifter){ book.gifter=data.gifter; }
+      customBooksByMedia[mediaType].push(book);
+      render();
+      if(gifter){ notifyGift(title, gifter); }
+      return;
+    }catch(e){
+      console.error('Ajout Supabase impossible, repli local', e);
+    }
+  }
+  const book={t:title, fam:fam||null, d:desc||'', custom:true, customId:'c'+Date.now()};
+  if(gifter){ book.gifter=gifter; }
+  customBooksByMedia[mediaType].push(book);
+  await saveCustomBooksLocal();
+  render();
+  if(gifter){ notifyGift(title, gifter); }
+}
+async function deleteCustomBook(customId){
+  if(sb){
+    try{
+      const { error } = await sb.from('items').delete().eq('id', customId);
+      if(error) throw error;
+      customBooksByMedia[mediaType] = customBooksByMedia[mediaType].filter(b=>b.customId!==customId);
+      render();
+      return;
+    }catch(e){
+      console.error('Suppression Supabase impossible, repli local', e);
+    }
+  }
+  customBooksByMedia[mediaType] = customBooksByMedia[mediaType].filter(b=>b.customId!==customId);
+  await saveCustomBooksLocal();
+  render();
+}
+
+if(sb){
+  sb.channel('items-sync')
+    .on('postgres_changes', {event:'*', schema:'public', table:'items'}, function(){
+      loadAllCustomBooks().then(render);
+    })
+    .subscribe();
+}
+
+const familyKeywords={
+  toystory:['toy story'],
+  cars:['cars'],
+  aladdin:['aladdin','jafar'],
+  reineneiges:['reine des neiges','frozen'],
+  lilostitch:['lilo','stitch'],
+  mulan:['mulan'],
+  roilion:['roi lion'],
+  dalmatiens:['dalmatien'],
+  monstres:['monstres'],
+  junglebook:['livre de la jungle'],
+  clochard:['belle et le clochard'],
+  bernardbianca:['bernard et bianca'],
+  nemo:['nemo','dory'],
+  indestructibles:['indestructible'],
+  viceversa:['vice-versa','vice versa'],
+  zootopie:['zootopie'],
+  vaiana:['vaiana','moana'],
+  coco:['coco'],
+  robindesbois:['robin des bois'],
+  dumbo:['dumbo'],
+  frereours:['frère des ours','frere des ours'],
+  taram:['taram'],
+  encanto:['encanto'],
+  winnie:['winnie'],
+  porcinet:['porcinet']
+};
+function guessFamily(title){
+  const t=title.toLowerCase();
+  for(const key in familyKeywords){
+    if(familyKeywords[key].some(function(kw){ return t.indexOf(kw)!==-1; })) return key;
+  }
+  return null;
+}
+
+function openModal(){
+  const mediaTitles={livres:'Nouveau livre', vhs:'Nouvelle VHS', dvd:'Nouveau DVD'};
+  document.getElementById('modalTitle').textContent=mediaTitles[mediaType];
+  document.getElementById('fTitle').value='';
+  document.getElementById('fDesc').value='';
+  document.getElementById('fIsGift').checked=false;
+  document.getElementById('fGifter').value='';
+  document.getElementById('giftFields').style.display='none';
+  document.getElementById('modalError').style.display='none';
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('fTitle').focus();
+}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+document.getElementById('fabAdd').addEventListener('click', openModal);
+document.getElementById('modalCancel').addEventListener('click', closeModal);
+document.getElementById('modalOverlay').addEventListener('click', function(e){
+  if(e.target.id==='modalOverlay') closeModal();
+});
+document.getElementById('fIsGift').addEventListener('change', function(e){
+  document.getElementById('giftFields').style.display = e.target.checked ? 'block' : 'none';
+});
+document.getElementById('modalSave').addEventListener('click', async function(){
+  const title=document.getElementById('fTitle').value.trim();
+  const desc=document.getElementById('fDesc').value.trim();
+  const isGift=document.getElementById('fIsGift').checked;
+  const gifter=document.getElementById('fGifter').value.trim();
+  if(!title){
+    document.getElementById('modalError').style.display='block';
+    return;
+  }
+  const fam=guessFamily(title);
+  await addCustomBook(title, fam, desc, isGift ? gifter : null);
+  closeModal();
+});
+
+function attachDrag(row){
+  let isDown=false, startX=0, startScroll=0, vel=0, lastX=0, lastT=0, raf=null;
+  row.addEventListener('pointerdown', function(e){
+    isDown=true; row.classList.add('dragging');
+    startX=e.clientX; startScroll=row.scrollLeft; lastX=e.clientX; lastT=Date.now();
+    cancelAnimationFrame(raf);
+  });
+  window.addEventListener('pointermove', function(e){
+    if(!isDown) return;
+    const dx=e.clientX-startX;
+    row.scrollLeft=startScroll-dx;
+    const now=Date.now(), dt=now-lastT || 16;
+    vel=(e.clientX-lastX)/dt;
+    lastX=e.clientX; lastT=now;
+  });
+  window.addEventListener('pointerup', function(){
+    if(!isDown) return;
+    isDown=false; row.classList.remove('dragging');
+    function momentum(){
+      row.scrollLeft-=vel*16;
+      vel*=0.92;
+      if(Math.abs(vel)>0.02) raf=requestAnimationFrame(momentum);
+    }
+    momentum();
+  });
+}
+
+(function(){
+  let lastY=window.scrollY, vel=0, ticking=false;
+  function onScroll(){
+    const y=window.scrollY;
+    vel += (y-lastY)*0.5;
+    lastY=y;
+    if(!ticking){ticking=true; requestAnimationFrame(tick);}
+  }
+  function tick(){
+    vel*=0.80;
+    const angle=Math.max(-3.2, Math.min(3.2, vel*0.10));
+    document.querySelectorAll('.shelf-row').forEach(function(r){
+      r.style.transform='rotate('+(angle*0.5)+'deg)';
+    });
+    if(Math.abs(vel)>0.02){ requestAnimationFrame(tick); }
+    else { document.querySelectorAll('.shelf-row').forEach(function(r){r.style.transform='';}); ticking=false; }
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+})();
+
+document.getElementById('search').addEventListener('input', function(e){currentSearch=e.target.value; render();});
+document.getElementById('sortSelect').addEventListener('change', function(e){currentSort=e.target.value; render();});
+document.getElementById('showMissing').addEventListener('click', function(e){
+  showMissing=!showMissing;
+  e.currentTarget.classList.toggle('active', showMissing);
+  render();
+});
+
+loadAllCustomBooks().then(render);
+
+document.querySelectorAll('#viewToggle button').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('#viewToggle button').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    const v=btn.dataset.v;
+    document.getElementById('shelfContainer').style.display = v==='shelf' ? 'flex' : 'none';
+    document.getElementById('listContainer').style.display = v==='list' ? 'block' : 'none';
+  });
+});
+
+document.querySelectorAll('#mediaToggle button').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('#mediaToggle button').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    mediaType=btn.dataset.m;
+    selectedFamily=null;
+    currentSearch='';
+    document.getElementById('search').value='';
+    render();
+  });
+});
+</script>
+</body>
+</html>
