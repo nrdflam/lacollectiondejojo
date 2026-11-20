@@ -481,6 +481,7 @@ const familyMeta = {
 
 const palette = ['#F3C6CE','#B9DEC9','#F6E2A6','#AECBE3','#D8C2E8','#F0B79A','#BFE3DA','#E9C7E0','#D9DDA0'];
 function hashHue(str){let h=0;for(let i=0;i<str.length;i++){h=str.charCodeAt(i)+((h<<5)-h);}return Math.abs(h);}
+function escapeHTML(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function spineColor(title){return palette[hashHue(title)%palette.length];}
 function hexHue(hex){
   hex=hex.replace('#','');
@@ -574,7 +575,7 @@ function render(){
     }
     block.innerHTML=
       '<div class="shelf-head">'+
-        '<div class="shelf-title">'+meta.label+'</div>'+
+        '<div class="shelf-title">'+escapeHTML(meta.label)+'</div>'+
         '<div class="shelf-badge '+(isComplete?'badge-complete':'badge-missing')+'">'+
           (isComplete?'Complet':(meta.missing.length+' manquant'+(meta.missing.length>1?'s':'')))+
         '</div>'+
@@ -584,7 +585,7 @@ function render(){
     const label=(familyMeta[selectedFamily]?familyMeta[selectedFamily].label:selectedFamily);
     items=withIds.filter(b=>b.fam===selectedFamily && b.t.toLowerCase().includes(q));
     block.innerHTML=
-      '<div class="shelf-head"><div class="shelf-title">'+label+'</div><div class="shelf-badge badge-complete">'+items.length+'</div></div>';
+      '<div class="shelf-head"><div class="shelf-title">'+escapeHTML(label)+'</div><div class="shelf-badge badge-complete">'+items.length+'</div></div>';
   } else {
     items=withIds.filter(b=>b.t.toLowerCase().includes(q));
     if(showMissing && familyModeActive){ ghosts=allMissingGhosts(q); }
@@ -675,7 +676,7 @@ function renderChips(){
       const isComplete=meta.noGap || meta.missing.length===0;
       const chip=document.createElement('div');
       chip.className='chip'+(selectedFamily===key?' active':'');
-      chip.innerHTML='<span class="dot '+(isComplete?'dot-complete':'dot-missing')+'"></span>'+meta.label;
+      chip.innerHTML='<span class="dot '+(isComplete?'dot-complete':'dot-missing')+'"></span>'+escapeHTML(meta.label);
       chip.addEventListener('click',function(){selectedFamily=(selectedFamily===key?null:key); render();});
       chipsRow.appendChild(chip);
     });
@@ -707,7 +708,7 @@ function spineEl(b){
   el.style.height='calc('+spineHeight(b.t)+'% + 70px)';
   const tilt=spineTilt(b.t);
   el.style.transform='rotate('+tilt+'deg)';
-  el.innerHTML='<div class="label">'+b.t+'</div>'+(b.dup?'<div class="dup-dot"></div>':'')+(b.custom?'<div class="custom-dot"></div>':'')+(b.gifter?'<div class="gift-dot">🎁</div>':'');
+  el.innerHTML='<div class="label">'+escapeHTML(b.t)+'</div>'+(b.dup?'<div class="dup-dot"></div>':'')+(b.custom?'<div class="custom-dot"></div>':'')+(b.gifter?'<div class="gift-dot">🎁</div>':'');
   el.addEventListener('click',function(){
     if(isGhost){
       openDetail({title:b.t, desc:"Ce volume de la franchise « "+(b.familyLabel||'')+" » existe mais ne fait pas partie de la collection sur l'étagère.", missing:true});
@@ -726,7 +727,7 @@ function listRowEl(b){
   const color=spineColor(b.t+(b.dup&&b._id%2?'-dup':''));
   el.innerHTML=
     '<div class="list-swatch'+(isGhost?' ghost-sw':'')+'"'+(isGhost?'':' style="background:'+color+'"')+'></div>'+
-    '<div class="list-info"><div class="list-title">'+b.t+'</div><div class="list-desc">'+(isGhost?(b.familyLabel?b.familyLabel+' — ':'')+'Absent de l\u2019étagère':(b.d||''))+'</div></div>'+
+    '<div class="list-info"><div class="list-title">'+escapeHTML(b.t)+'</div><div class="list-desc">'+escapeHTML(isGhost?(b.familyLabel?b.familyLabel+' — ':'')+'Absent de l\u2019étagère':(b.d||''))+'</div></div>'+
     '<div class="list-tag '+(isGhost?'tag-missing':'tag-owned')+'">'+(isGhost?'Manquant':'Possédé')+'</div>';
   el.addEventListener('click',function(){
     if(isGhost){
@@ -916,10 +917,11 @@ const familyKeywords={
   winnie:['winnie'],
   porcinet:['porcinet']
 };
+function normTxt(x){return x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();}
 function guessFamily(title){
-  const t=title.toLowerCase();
+  const t=' '+normTxt(title)+' ';
   for(const key in familyKeywords){
-    if(familyKeywords[key].some(function(kw){ return t.indexOf(kw)!==-1; })) return key;
+    if(familyKeywords[key].some(function(kw){ var k=' '+normTxt(kw); return t.indexOf(k+' ')!==-1 || t.indexOf(k+'s ')!==-1; })) return key;
   }
   return null;
 }
@@ -962,30 +964,32 @@ document.getElementById('modalSave').addEventListener('click', async function(){
   closeModal();
 });
 
+let dragSt=null;
+window.addEventListener('pointermove', function(e){
+  if(!dragSt) return;
+  const d=dragSt, dx=e.clientX-d.startX;
+  d.row.scrollLeft=d.startScroll-dx;
+  const now=Date.now(), dt=now-d.lastT || 16;
+  d.vel=(e.clientX-d.lastX)/dt;
+  d.lastX=e.clientX; d.lastT=now;
+});
+window.addEventListener('pointerup', function(){
+  if(!dragSt) return;
+  const d=dragSt; dragSt=null;
+  d.row.classList.remove('dragging');
+  function momentum(){
+    if(!d.row.isConnected) return;
+    d.row.scrollLeft-=d.vel*16;
+    d.vel*=0.92;
+    if(Math.abs(d.vel)>0.02) d.raf=requestAnimationFrame(momentum);
+  }
+  momentum();
+});
 function attachDrag(row){
-  let isDown=false, startX=0, startScroll=0, vel=0, lastX=0, lastT=0, raf=null;
   row.addEventListener('pointerdown', function(e){
-    isDown=true; row.classList.add('dragging');
-    startX=e.clientX; startScroll=row.scrollLeft; lastX=e.clientX; lastT=Date.now();
-    cancelAnimationFrame(raf);
-  });
-  window.addEventListener('pointermove', function(e){
-    if(!isDown) return;
-    const dx=e.clientX-startX;
-    row.scrollLeft=startScroll-dx;
-    const now=Date.now(), dt=now-lastT || 16;
-    vel=(e.clientX-lastX)/dt;
-    lastX=e.clientX; lastT=now;
-  });
-  window.addEventListener('pointerup', function(){
-    if(!isDown) return;
-    isDown=false; row.classList.remove('dragging');
-    function momentum(){
-      row.scrollLeft-=vel*16;
-      vel*=0.92;
-      if(Math.abs(vel)>0.02) raf=requestAnimationFrame(momentum);
-    }
-    momentum();
+    if(dragSt) cancelAnimationFrame(dragSt.raf);
+    row.classList.add('dragging');
+    dragSt={row:row,startX:e.clientX,startScroll:row.scrollLeft,lastX:e.clientX,lastT:Date.now(),vel:0,raf:null};
   });
 }
 
