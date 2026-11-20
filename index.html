@@ -841,12 +841,34 @@ function notifyGift(title, gifter){
   window.open(mailto, '_blank');
 }
 
+function getAccessCode(force){
+  let c=null;
+  try{ c=localStorage.getItem('jojo_code'); }catch(e){}
+  if(!c || force){
+    c=window.prompt(force?'Code incorrect. Code d\u2019accès ?':'Code d\u2019accès pour modifier la collection ?');
+    if(!c) return null;
+    c=c.trim();
+    try{ localStorage.setItem('jojo_code', c); }catch(e){}
+  }
+  return c;
+}
+function forgetAccessCode(){ try{ localStorage.removeItem('jojo_code'); }catch(e){} }
+function isBadCode(err){ return !!(err && String(err.message||err).indexOf('bad_code')!==-1); }
+
 async function addCustomBook(title, fam, desc, gifter){
   selectedFamily = fam || null;
   if(sb){
     try{
-      const insertObj={media_type:mediaType, title:title, fam:fam||null, description:desc||null, gifter:gifter||null};
-      const { data, error } = await sb.from('items').insert(insertObj).select().single();
+      let code=getAccessCode(false);
+      if(!code) return;
+      let res=await sb.rpc('add_item',{p_code:code,p_media:mediaType,p_title:title,p_fam:fam||null,p_desc:desc||null,p_gifter:gifter||null});
+      if(res.error && isBadCode(res.error)){
+        forgetAccessCode(); code=getAccessCode(true);
+        if(!code) return;
+        res=await sb.rpc('add_item',{p_code:code,p_media:mediaType,p_title:title,p_fam:fam||null,p_desc:desc||null,p_gifter:gifter||null});
+        if(res.error && isBadCode(res.error)){ forgetAccessCode(); window.alert('Code incorrect, rien n\u2019a été ajouté.'); return; }
+      }
+      const { data, error } = res;
       if(error) throw error;
       const book={t:data.title, fam:data.fam||null, d:data.description||'', custom:true, customId:data.id};
       if(data.gifter){ book.gifter=data.gifter; }
@@ -868,7 +890,16 @@ async function addCustomBook(title, fam, desc, gifter){
 async function deleteCustomBook(customId){
   if(sb){
     try{
-      const { error } = await sb.from('items').delete().eq('id', customId);
+      let code=getAccessCode(false);
+      if(!code) return;
+      let res=await sb.rpc('delete_item',{p_code:code,p_id:customId});
+      if(res.error && isBadCode(res.error)){
+        forgetAccessCode(); code=getAccessCode(true);
+        if(!code) return;
+        res=await sb.rpc('delete_item',{p_code:code,p_id:customId});
+        if(res.error && isBadCode(res.error)){ forgetAccessCode(); window.alert('Code incorrect, rien n\u2019a été supprimé.'); return; }
+      }
+      const error=res.error;
       if(error) throw error;
       customBooksByMedia[mediaType] = customBooksByMedia[mediaType].filter(b=>b.customId!==customId);
       render();
